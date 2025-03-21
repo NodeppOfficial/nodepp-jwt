@@ -35,7 +35,7 @@ namespace nodepp { namespace jwt { namespace XOR {
           { return false; } 
 
         string_t _token = string::format("%s.%s",data[0].get(),data[1].get());
-        auto sig = crypto::hmac::SHA256( secret ); sig.update( _token );
+        auto sig = crypto::hmac::SHA1( secret ); sig.update( _token );
         auto ver = encoder::base64::get( sig.get() );
 
         return ver == data[2];
