@@ -23,25 +23,22 @@
 
 namespace nodepp { namespace jwt { namespace HS256 {
 
-    bool verify ( const string_t& token, const string_t& secret ){
-        try { if( token.empty()  ){ return false; }
-              if( secret.empty() ){ return false; }
+    bool verify ( const string_t& token, const string_t& secret ){ try { 
+        if( token.empty() ) { throw ""; }
+        if( secret.empty() ){ throw ""; }
 
-        auto data = regex::split( token, '.' );
-        if ( data.size() != 3 ){ return false; }
+        auto data = regex::split( token,'.' );
+        if ( data.size() != 3 ) { throw ""; }
 
         auto obj = json::parse( encoder::base64::set( data[0] ) );
         if( !obj["alg"].has_value() || obj["alg"].as<string_t>() != "HS256" )
-          { return false; } 
+          { throw ""; } 
 
         string_t _token = string::format("%s.%s",data[0].get(),data[1].get());
         auto sig = crypto::hmac::SHA256( secret ); sig.update( _token );
-        auto ver = encoder::base64::get( sig.get() );
+        auto ver = encoder::base64::get( sig.get() ); return ver==data[2];
 
-        return ver == data[2];
-
-        } catch(...) { return false; }
-    }
+    } catch(...) {} return false; }
 
     string_t encode ( const string_t& payload, string_t secret ){
 
@@ -80,25 +77,22 @@ namespace nodepp { namespace jwt { namespace HS256 {
 
 namespace nodepp { namespace jwt { namespace HS384 {
 
-    bool verify ( const string_t& token, const string_t& secret ){
-        try { if( token.empty()  ){ return false; }
-              if( secret.empty() ){ return false; }
+    bool verify ( const string_t& token, const string_t& secret ){ try { 
+        if( token.empty() ) { throw ""; }
+        if( secret.empty() ){ throw ""; }
 
-        auto data = regex::split( token, '.' );
-        if ( data.size() != 3 ){ return false; }
+        auto data = regex::split( token,'.' );
+        if ( data.size() != 3 ) { throw ""; }
 
         auto obj = json::parse( encoder::base64::set( data[0] ) );
         if( !obj["alg"].has_value() || obj["alg"].as<string_t>() != "HS384" )
-          { return false; } 
+          { throw ""; } 
 
         string_t _token = string::format("%s.%s",data[0].get(),data[1].get());
         auto sig = crypto::hmac::SHA384( secret ); sig.update( _token );
-        auto ver = encoder::base64::get( sig.get() );
+        auto ver = encoder::base64::get( sig.get() ); return ver==data[2];
 
-        return ver == data[2];
-
-        } catch(...) { return false; }
-    }
+    } catch(...) {} return false; }
 
     string_t encode ( const string_t& payload, string_t secret ){
 
@@ -130,25 +124,22 @@ namespace nodepp { namespace jwt { namespace HS384 {
 
 namespace nodepp { namespace jwt { namespace HS512 {
 
-    bool verify ( const string_t& token, const string_t& secret ){
-        try { if( token.empty()  ){ return false; }
-              if( secret.empty() ){ return false; }
+    bool verify ( const string_t& token, const string_t& secret ){ try { 
+        if( token.empty() ) { throw ""; }
+        if( secret.empty() ){ throw ""; }
 
-        auto data = regex::split( token, '.' );
-        if ( data.size() != 3 ){ return false; }
+        auto data = regex::split( token,'.' );
+        if ( data.size() != 3 ) { throw ""; }
 
         auto obj = json::parse( encoder::base64::set( data[0] ) );
         if( !obj["alg"].has_value() || obj["alg"].as<string_t>() != "HS512" )
-          { return false; } 
+          { throw ""; } 
 
         string_t _token = string::format("%s.%s",data[0].get(),data[1].get());
         auto sig = crypto::hmac::SHA512( secret ); sig.update( _token );
-        auto ver = encoder::base64::get( sig.get() );
+        auto ver = encoder::base64::get( sig.get() ); return ver==data[2];
 
-        return ver == data[2];
-
-        } catch(...) { return false; }
-    }
+    } catch(...) {} return false; }
 
     string_t encode ( const string_t& payload, string_t secret ){
 
