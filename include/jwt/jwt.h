@@ -21,63 +21,6 @@
 
 /*────────────────────────────────────────────────────────────────────────────*/
 
-namespace nodepp { namespace jwt { namespace XOR {
-
-    bool verify ( const string_t& token, const string_t& secret ){
-        try { if( token.empty()  ){ return false; }
-              if( secret.empty() ){ return false; }
-
-        auto data = regex::split( token, '.' );
-        if ( data.size() != 3 ){ return false; }
-
-        auto obj = json::parse( encoder::base64::set( data[0] ) );
-        if( !obj["alg"].has_value() || obj["alg"].as<string_t>() != "XOR" )
-          { return false; } 
-
-        string_t _token = string::format("%s.%s",data[0].get(),data[1].get());
-        auto sig = crypto::hmac::SHA1( secret ); sig.update( _token );
-        auto ver = encoder::base64::get( sig.get() );
-
-        return ver == data[2];
-
-        } catch(...) { return false; }
-    }
-
-    string_t encode ( const string_t& payload, string_t secret ){
-
-        string_t header = R"({"alg":"XOR","typ":"JWT"})";
-        string_t token  = string::format("%s.%s",
-            encoder::base64::get(  header ).get(),
-            encoder::base64::get( payload ).get()
-        );
-
-        auto sig = crypto::hmac::SHA1( secret );
-             sig.update( token );
-        auto data= sig.get();
-
-        return string::format("%s.%s.%s",
-            encoder::base64::get(  header.get() ).get(),
-            encoder::base64::get( payload.get() ).get(),
-            encoder::base64::get(    data.get() ).get()
-        );
-
-    }
-
-    string_t decode ( const string_t& token ){
-        if( token.empty() ){ return nullptr; }
-
-        auto data = regex::split( token, '.' );
-        if ( data.size() != 3 )
-           { process::error("invalid token"); }
-
-        return encoder::base64::set( data[1] );
-
-    }
-
-}}}
-
-/*────────────────────────────────────────────────────────────────────────────*/
-
 namespace nodepp { namespace jwt { namespace HS256 {
 
     bool verify ( const string_t& token, const string_t& secret ){
@@ -120,7 +63,16 @@ namespace nodepp { namespace jwt { namespace HS256 {
 
     }
 
-    string_t decode ( const string_t& token ){ return XOR::decode( token ); }
+    string_t decode ( const string_t& token ){
+        if( token.empty() ){ return nullptr; }
+
+        auto data = regex::split( token, '.' );
+        if ( data.size() != 3 )
+           { process::error("invalid token"); }
+
+        return encoder::base64::set( data[1] );
+
+    }
 
 }}}
 
@@ -168,7 +120,9 @@ namespace nodepp { namespace jwt { namespace HS384 {
 
     }
 
-    string_t decode ( const string_t& token ){ return XOR::decode( token ); }
+    string_t decode ( const string_t& token ){ 
+        return HS256::decode( token ); 
+    }
 
 }}}
 
@@ -216,7 +170,9 @@ namespace nodepp { namespace jwt { namespace HS512 {
 
     }
 
-    string_t decode ( const string_t& token ){ return XOR::decode( token ); }
+    string_t decode ( const string_t& token ){ 
+        return HS256::decode( token ); 
+    }
 
 }}}
 
@@ -224,7 +180,12 @@ namespace nodepp { namespace jwt { namespace HS512 {
 
 namespace nodepp { namespace jwt {
 
-    string_t decode ( const string_t& token ){ return XOR::decode( token ); }
+    string_t encode ( const string_t& token, string_t secret, string_t type="HS256" ){
+          if( type=="HS256" ){ return HS256::encode( token, secret ); }
+        elif( type=="HS384" ){ return HS384::encode( token, secret ); }
+        elif( type=="HS512" ){ return HS512::encode( token, secret ); }
+        process::error("invalid token"); return nullptr;
+    }
 
     bool verify ( const string_t& token, string_t secret ){ try {
 
@@ -234,20 +195,14 @@ namespace nodepp { namespace jwt {
         auto raw = json::parse( encoder::base64::set(data) );
         auto type= raw["alg"].as<string_t>();
 
-          if( type=="XOR"   ){ return XOR  ::verify( token, secret ); }
-        elif( type=="HS256" ){ return HS256::verify( token, secret ); }
+          if( type=="HS256" ){ return HS256::verify( token, secret ); }
         elif( type=="HS384" ){ return HS384::verify( token, secret ); }
         elif( type=="HS512" ){ return HS512::verify( token, secret ); } 
         
-      throw "";
     } catch(...) {} return false; }
 
-    string_t encode ( const string_t& token, string_t secret, string_t type="HS256" ){
-          if( type=="XOR"   ){ return XOR  ::encode( token, secret ); }
-        elif( type=="HS256" ){ return HS256::encode( token, secret ); }
-        elif( type=="HS384" ){ return HS384::encode( token, secret ); }
-        elif( type=="HS512" ){ return HS512::encode( token, secret ); }
-        process::error("invalid token"); return nullptr;
+    string_t decode ( const string_t& token ){ 
+        return HS256::decode( token ); 
     }
 
 }}
